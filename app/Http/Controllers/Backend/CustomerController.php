@@ -25,8 +25,10 @@ class CustomerController extends Controller
             'email' => 'required|unique:customers|max:200',
             'phone' => 'required|max:200',
             'address' => 'required|max:400',
-            'salary' => 'required|max:200',
-            'vacation' => 'required|max:200',
+            'shopname' => 'required|max:200',
+            'account_holder' => 'required|max:200',
+            'account_number' => 'required',
+            'image' => 'required',
         ]);
 
         // ✅ Check if an image is uploaded
@@ -44,17 +46,21 @@ class CustomerController extends Controller
             $save_url = null; // No image uploaded
         }
 
-        customer::create([
+        Customer::insert([
+
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
             'address' => $request->address,
-            'experience' => $request->experience,
-            'salary' => $request->salary,
-            'vacation' => $request->vacation,
+            'shopname' => $request->shopname,
+            'account_holder' => $request->account_holder,
+            'account_number' => $request->account_number,
+            'bank_name' => $request->bank_name,
+            'bank_branch' => $request->bank_branch,
             'city' => $request->city,
             'image' => $save_url,
             'created_at' => Carbon::now(),
+
         ]);
 
         return redirect()->route('all.customer')->with([
@@ -102,15 +108,17 @@ class CustomerController extends Controller
             $img->save(public_path('upload/customer/' . $name_gen));
             $save_url = 'upload/customer/' . $name_gen;
 
-            customer::findOrFail($customer_id)->update([
+            Customer::findOrFail($customer_id)->update([
 
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'address' => $request->address,
-                'experience' => $request->experience,
-                'salary' => $request->salary,
-                'vacation' => $request->vacation,
+                'shopname' => $request->shopname,
+                'account_holder' => $request->account_holder,
+                'account_number' => $request->account_number,
+                'bank_name' => $request->bank_name,
+                'bank_branch' => $request->bank_branch,
                 'city' => $request->city,
                 'image' => $save_url,
                 'created_at' => Carbon::now(),
@@ -125,15 +133,17 @@ class CustomerController extends Controller
             return redirect()->route('all.customer')->with($notification);
         } else {
 
-            customer::findOrFail($customer_id)->update([
+            Customer::findOrFail($customer_id)->update([
 
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'address' => $request->address,
-                'experience' => $request->experience,
-                'salary' => $request->salary,
-                'vacation' => $request->vacation,
+                'shopname' => $request->shopname,
+                'account_holder' => $request->account_holder,
+                'account_number' => $request->account_number,
+                'bank_name' => $request->bank_name,
+                'bank_branch' => $request->bank_branch,
                 'city' => $request->city,
                 'created_at' => Carbon::now(),
 
