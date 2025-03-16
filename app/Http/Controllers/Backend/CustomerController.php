@@ -4,25 +4,25 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Employee;
+use App\Models\Customer;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver; // ✅ Import the correct driver
 // ✅ Correct Import for V3
 use Carbon\Carbon;
 
-class EmployeeController extends Controller
+class CustomerController extends Controller
 {
-    public function AllEmployee()
+    public function AllCustomer()
     {
-        $employee = Employee::latest()->get();
-        return view('backend.employee.all_employee', compact('employee'));
+        $customer = customer::latest()->get();
+        return view('backend.customer.all_customer', compact('customer'));
     }
 
-    public function StoreEmployee(Request $request)
+    public function StoreCustomer(Request $request)
     {
         $validateData = $request->validate([
             'name' => 'required|max:200',
-            'email' => 'required|unique:employees|max:200',
+            'email' => 'required|unique:customers|max:200',
             'phone' => 'required|max:200',
             'address' => 'required|max:400',
             'salary' => 'required|max:200',
@@ -37,14 +37,14 @@ class EmployeeController extends Controller
             // ✅ Use ImageManager in V3 (No Facades\Image anymore)
             $manager = new ImageManager(new Driver());
             $img = $manager->read($image)->resize(300, 300);
-            $img->save(public_path('upload/employee/' . $name_gen));
+            $img->save(public_path('upload/customer/' . $name_gen));
 
-            $save_url = 'upload/employee/' . $name_gen;
+            $save_url = 'upload/customer/' . $name_gen;
         } else {
             $save_url = null; // No image uploaded
         }
 
-        Employee::create([
+        customer::create([
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
@@ -57,42 +57,41 @@ class EmployeeController extends Controller
             'created_at' => Carbon::now(),
         ]);
 
-        return redirect()->route('all.employee')->with([
-            'message' => 'Employee Inserted Successfully',
+        return redirect()->route('all.customer')->with([
+            'message' => 'customer Inserted Successfully',
             'alert-type' => 'success'
         ]);
     }
 
-    public function AddEmployee()
+    public function AddCustomer()
     {
-        return view('backend.employee.add_employee');
+        return view('backend.customer.add_customer');
     }
-    public function DeleteEmployee($id)
+    public function DeleteCustomer($id)
     {
-        $employee_img = Employee::findOrFail($id);
-        $img = $employee_img->image;
+        $customer_img = customer::findOrFail($id);
+        $img = $customer_img->image;
         unlink($img);
 
-        Employee::findOrFail($id)->delete();
+        customer::findOrFail($id)->delete();
 
         $notification = array(
-            'message' => 'Employee Deleted Successfully',
+            'message' => 'customer Deleted Successfully',
             'alert-type' => 'success'
         );
 
         return redirect()->back()->with($notification);
-
     } // End Method
-    public function EditEmployee($id)
+    public function EditCustomer($id)
     {
 
-        $employee = Employee::findOrFail($id);
-        return view('backend.employee.edit_employee', compact('employee'));
+        $customer = customer::findOrFail($id);
+        return view('backend.customer.edit_customer', compact('customer'));
     } // End Method 
-    public function UpdateEmployee(Request $request)
+    public function UpdateCustomer(Request $request)
     {
 
-        $employee_id = $request->id;
+        $customer_id = $request->id;
 
         if ($request->file('image')) {
 
@@ -100,10 +99,10 @@ class EmployeeController extends Controller
             $name_gen = hexdec(uniqid()) . '.' . $image->getClientOriginalExtension();
             $manager = new ImageManager(new Driver());
             $img = $manager->read($image)->resize(300, 300);
-            $img->save(public_path('upload/employee/' . $name_gen));
-            $save_url = 'upload/employee/' . $name_gen;
+            $img->save(public_path('upload/customer/' . $name_gen));
+            $save_url = 'upload/customer/' . $name_gen;
 
-            Employee::findOrFail($employee_id)->update([
+            customer::findOrFail($customer_id)->update([
 
                 'name' => $request->name,
                 'email' => $request->email,
@@ -119,14 +118,14 @@ class EmployeeController extends Controller
             ]);
 
             $notification = array(
-                'message' => 'Employee Updated Successfully',
+                'message' => 'customer Updated Successfully',
                 'alert-type' => 'success'
             );
 
-            return redirect()->route('all.employee')->with($notification);
+            return redirect()->route('all.customer')->with($notification);
         } else {
 
-            Employee::findOrFail($employee_id)->update([
+            customer::findOrFail($customer_id)->update([
 
                 'name' => $request->name,
                 'email' => $request->email,
@@ -141,11 +140,11 @@ class EmployeeController extends Controller
             ]);
 
             $notification = array(
-                'message' => 'Employee Updated Successfully',
+                'message' => 'customer Updated Successfully',
                 'alert-type' => 'success'
             );
 
-            return redirect()->route('all.employee')->with($notification);
+            return redirect()->route('all.customer')->with($notification);
         } // End else Condition  
 
 
