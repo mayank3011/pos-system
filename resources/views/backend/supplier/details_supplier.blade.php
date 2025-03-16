@@ -130,6 +130,7 @@
                 <label for="firstname" class="form-label">Supplier Type    </label>
                 <p class="text-danger">{{ $supplier->type }}</p>
             </div>
+        </div>
 
      <div class="col-md-6">
         <div class="mb-3">

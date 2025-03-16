@@ -166,6 +166,7 @@
         <span class="text-danger"> {{ $message }} </span>
                 @enderror
             </div>
+        </div>
 
      <div class="col-md-6">
         <div class="mb-3">
