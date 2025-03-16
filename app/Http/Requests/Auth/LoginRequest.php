@@ -47,12 +47,12 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $user = User::where('email', $this->login)
-            ->orWhere('name', $this->login)
-            ->orWhere('phone', $this->login)
+        $user = User::where('email', $this->input('login'))
+            ->orWhere('name', $this->input('login'))
+            ->orWhere('phone', $this->input('login'))
             ->first();
 
-        if (!$user || !Hash::check($this->password, $user->password)) {
+        if (!$user || !Hash::check($this->input('password'), $user->password)) {  // Fixed input reference
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -73,7 +73,7 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited()
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
 
@@ -82,7 +82,7 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
+            'login' => trans('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),
@@ -96,6 +96,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey()
     {
-        return Str::transliterate(Str::lower($this->input('email')) . '|' . $this->ip());
+        return Str::lower($this->input('login')) . '|' . $this->ip();
     }
 }

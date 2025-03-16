@@ -107,6 +107,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/edit/advance/salary/{id}', 'EditAdvanceSalary')->name('edit.advance.salary');
         Route::post('/advance/salary/update', 'AdvanceSalaryUpdate')->name('advance.salary.update');
+        Route::get('/delete/advance/salary/{id}', 'DeleteAdvanceSalary')->name('delete.advance.salary');
     });
 
 
