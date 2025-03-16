@@ -51,13 +51,10 @@
                 <td>{{ $item->phone }}</td>
                 <td>{{ $item->salary }}</td>
                 <td>
-   @if(Auth::user()->can('employee.edit'))                  
 <a href="{{ route('edit.employee',$item->id) }}" class="btn btn-blue rounded-pill waves-effect waves-light">Edit</a>
-@endif
 
- @if(Auth::user()->can('employee.delete'))
 <a href="{{ route('delete.employee',$item->id) }}" class="btn btn-danger rounded-pill waves-effect waves-light" id="delete">Delete</a>
-@endif
+
                 </td>
             </tr>
             @endforeach

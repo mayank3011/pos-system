@@ -27,6 +27,20 @@ class EmployeeController extends Controller
             'address' => 'required|max:400',
             'salary' => 'required|max:200',
             'vacation' => 'required|max:200',
+            'experience' => 'required',
+            'image' => 'required|mimes:jpg,jpeg,png',
+            'city' => 'required',
+        ],
+        [
+            'name.required' => 'Please input employee name',
+            'email.required' => 'Please input employee email',
+            'phone.required' => 'Please input employee phone',
+            'address.required' => 'Please input employee address',
+            'salary.required' => 'Please input employee salary',
+            'vacation.required' => 'Please input employee vacation',
+            'experience.required' => 'Please input employee experience',
+            'image.required' => 'Please input employee image',
+            'city.required' => 'Please input employee city',
         ]);
 
         // ✅ Check if an image is uploaded
@@ -61,6 +75,12 @@ class EmployeeController extends Controller
             'message' => 'Employee Inserted Successfully',
             'alert-type' => 'success'
         ]);
+    }
+
+    public function EditEmployee($id)
+    {
+        $employee = Employee::findOrFail($id);
+        return view('backend.employee.edit_employee', compact('employee'));
     }
 
     public function AddEmployee()
