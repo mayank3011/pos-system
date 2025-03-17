@@ -15,7 +15,7 @@
       <a href="{{ route('add.advance.salary') }}" class="btn btn-primary rounded-pill waves-effect waves-light">Add Advance Salary </a>  
                                         </ol>
                                     </div>
-                                    <h4 class="page-title">All Advance Salary</h4>
+                                    <h4 class="page-title">All Pay Salary</h4>
                                 </div>
                             </div>
                         </div>     
@@ -25,7 +25,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                     
+                    <h4 class="header-title">{{ date("F Y") }}</h4>
                     
                     <table id="basic-datatable" class="table dt-responsive nowrap w-100">
                         <thead>
@@ -35,28 +35,37 @@
                                 <th>Name</th>
                                 <th>Month</th>
                                 <th>Salary</th>
-                                <th>Advance Salary</th>
+                                <th>Advance</th>
+                                <th>Due</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                     
     
         <tbody>
-        	@foreach($salary as $key=> $item)
+            @foreach($employee as $key=> $item)
             <tr>
                 <td>{{ $key+1 }}</td>
-                <td> <img src="{{ asset($item->employee->image) }}" style="width:50px; height: 40px;"> </td>
-                <td>{{ $item['employee']['name'] }}</td>
-                <td>{{ $item->month }}</td>
-                <td>{{ $item['employee']['salary'] }}</td>
-                <td> @if ($item->advance_salary==NULL)
+                <td> <img src="{{ asset($item->image) }}" style="width:50px; height: 40px;"> </td>
+                <td>{{ $item->name }}</td>
+                <td><span class="badge bg-info"> {{ date("F", strtotime('-1 month')) }} </span> </td>
+                <td> {{ $item->salary }} </td>
+                <td> 
+                    @if ($item['advance']['advance_salary']==NULL)
                     <p>No Advance</p>
                     @else
-                        {{ $item->advance_salary }}</td>
+                    {{ $item['advance']['advance_salary'] }}
+                        
                     @endif
+                </td>
+                <td> 
+                    @php
+                        $amount = $item->salary - $item['advance']['advance_salary'];
+                    @endphp
+                    <strong style="color:#ffff;">{{ round($amount) }}</strong>
+                </td>
                 <td>
-<a href="{{ route('edit.advance.salary',$item->id) }}" class="btn btn-blue rounded-pill waves-effect waves-light"><i class="fa-solid fa-pen"></i></a>
-<a href="{{ route('delete.advance.salary',$item->id) }}" class="btn btn-danger rounded-pill waves-effect waves-light" id="delete"><i class="fa-solid fa-trash"></i></a>
+<a href="{{ route('pay.now.salary',$item->id) }}" class="btn btn-blue rounded-pill waves-effect waves-light">Pay Now</a>
                 </td>
             </tr>
             @endforeach
