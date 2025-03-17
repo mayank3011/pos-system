@@ -107,13 +107,27 @@
                             <li>
                                 <a href="#attendence" data-bs-toggle="collapse">
                                     <i class="mdi mdi-email-multiple-outline"></i>
-                                        <span> Employee Salary </span>
+                                        <span> Employee Attendence</span>
                                         <span class="menu-arrow"></span>
                                 </a>
                                 <div class="collapse" id="attendence">
                                     <ul class="nav-second-level">
                                         <li>
                                             <a href="{{ route('employee.attend.list') }}">Employee Attendance List </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </li>
+                             <li>
+                                <a href="#category" data-bs-toggle="collapse">
+                                    <i class="mdi mdi-email-multiple-outline"></i>
+                                        <span>Manage Category</span>
+                                        <span class="menu-arrow"></span>
+                                </a>
+                                <div class="collapse" id="category">
+                                    <ul class="nav-second-level">
+                                        <li>
+                                            <a href="{{ route('all.category') }}">All Category</a>
                                         </li>
                                     </ul>
                                 </div>
