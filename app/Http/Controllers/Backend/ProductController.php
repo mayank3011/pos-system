@@ -11,7 +11,9 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver; // ✅ Import the correct driver
 use Carbon\Carbon;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
-
+use App\Exports\ProductExport;
+use App\Imports\ProductImport;
+use Maatwebsite\Excel\Facades\Excel;
 class ProductController extends Controller
 {
     public function AllProduct()
@@ -149,5 +151,23 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
         return view('backend.product.barcode_product', compact('product'));
+    } // End Method 
+    public function ImportProduct(){
+        return view('backend.product.import_product');
+    }// End Method 
+    public function Export(){
+        return Excel::download(new ProductExport,'products.xlsx');
+    } // End Method
+    public function Import(Request $request)
+    {
+
+        Excel::import(new ProductImport, $request->file('import_file'));
+
+        $notification = array(
+            'message' => 'Product Imported Successfully',
+            'alert-type' => 'success'
+        );
+
+        return redirect()->back()->with($notification);
     } // End Method 
 }
