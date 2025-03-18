@@ -132,6 +132,23 @@
                                     </ul>
                                 </div>
                             </li>
+                            <li>
+                                <a href="#product" data-bs-toggle="collapse">
+                                    <i class="mdi mdi-email-multiple-outline"></i>
+                                        <span>Manage Products</span>
+                                        <span class="menu-arrow"></span>
+                                </a>
+                                <div class="collapse" id="product">
+                                    <ul class="nav-second-level">
+                                        <li>
+                                            <a href="{{ route('all.product') }}">All Products</a>
+                                        </li>
+                                         <li>
+                                            <a href="{{ route('add.product') }}">Add Product</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </li>
 
 
                              

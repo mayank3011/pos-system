@@ -44,7 +44,7 @@ class EmployeeController extends Controller
             $save_url = null; // No image uploaded
         }
 
-        Employee::create([
+        Employee::insert([
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
