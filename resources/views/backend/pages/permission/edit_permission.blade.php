@@ -64,6 +64,7 @@
                                     <option value="orders" {{ $permission->group_name == 'orders' ? 'selected' : '' }}>Orders</option>
                                     <option value="stock" {{ $permission->group_name == 'stock' ? 'selected' : '' }}>Stock</option>
                                     <option value="roles" {{ $permission->group_name == 'roles' ? 'selected' : '' }}>Roles</option> 
+                                    <option value="roles" {{ $permission->group_name == 'admin' ? 'selected' : '' }}>Admin</option>
                                 </select>
                             </div>
                         </div>

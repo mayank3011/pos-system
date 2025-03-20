@@ -8,49 +8,35 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
-use File;
-use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
     public function AdminDestroy(Request $request)
     {
         Auth::guard('web')->logout();
-
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
-        $notification = array(
+        return redirect('/logout')->with([
             'message' => 'Admin Logout Successfully',
             'alert-type' => 'info'
-        );
-
-
-        return redirect('/logout')->with($notification);
-    } // End Method 
-
+        ]);
+    }
 
     public function AdminLogoutPage()
     {
-
         return view('admin.admin_logout');
-    } // End Method 
-
-
+    }
 
     public function AdminProfile()
     {
-
         $id = Auth::user()->id;
         $adminData = User::find($id);
         return view('admin.admin_profile_view', compact('adminData'));
-    } // End Method 
-
+    }
 
     public function AdminProfileStore(Request $request)
     {
-
         $id = Auth::user()->id;
         $data = User::find($id);
         $data->name = $request->name;
@@ -67,188 +53,138 @@ class AdminController extends Controller
 
         $data->save();
 
-        $notification = array(
+        return redirect()->back()->with([
             'message' => 'Admin Profile Updated Successfully',
             'alert-type' => 'success'
-        );
-
-        return redirect()->back()->with($notification);
-    } // End Method 
-
+        ]);
+    }
 
     public function ChangePassword()
     {
         return view('admin.change_password');
-    } // End Method 
-
-
+    }
 
     public function UpdatePassword(Request $request)
     {
-
-        /// Validation 
         $request->validate([
             'old_password' => 'required',
             'new_password' => 'required|confirmed',
-
         ]);
 
-        /// Match The Old Password 
         if (!Hash::check($request->old_password, auth::user()->password)) {
-
-            $notification = array(
-                'message' => 'Old Password Dones not Match!!',
+            return back()->with([
+                'message' => 'Old Password Does not Match!',
                 'alert-type' => 'error'
-            );
-            return back()->with($notification);
+            ]);
         }
-
-        //// Update The New Password 
 
         User::whereId(auth()->user()->id)->update([
             'password' => Hash::make($request->new_password)
         ]);
 
-        $notification = array(
-            'message' => 'Password Change Successfully',
+        return back()->with([
+            'message' => 'Password Changed Successfully',
             'alert-type' => 'success'
-        );
-        return back()->with($notification);
-    } // End Method 
+        ]);
+    }
 
-    /////////////////// Admin User All Method /////////////
-
+    // Admin User Management
 
     public function AllAdmin()
     {
-
         $alladminuser = User::latest()->get();
         return view('backend.admin.all_admin', compact('alladminuser'));
-    } // End Method 
+    }
 
     public function AddAdmin()
     {
-
         $roles = Role::all();
         return view('backend.admin.add_admin', compact('roles'));
-    } // End Method 
-
+    }
 
     public function StoreAdmin(Request $request)
     {
+        // Validate request
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email',
+            'phone' => 'required|string|max:20',
+            'password' => 'required|string|min:6',
+            'roles' => 'nullable|exists:roles,id',
+        ]);
 
-        $user = new User();
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->phone = $request->phone;
-        $user->password = Hash::make($request->password);
-        $user->save();
-
-        if ($request->roles) {
-            $user->assignRole($request->roles);
+        // Check if user already exists
+        if (User::where('email', $request->email)->exists()) {
+            return redirect()->back()->with([
+                'message' => 'User with this email already exists!',
+                'alert-type' => 'error'
+            ]);
         }
 
-        $notification = array(
+        // Create the user
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'password' => Hash::make($request->password),
+        ]);
+
+        // Assign role if provided
+        if ($request->roles) {
+            $role = Role::find($request->roles);
+            if ($role) {
+                $user->assignRole($role->name);
+            }
+        }
+
+        return redirect()->route('all.admin')->with([
             'message' => 'New Admin User Created Successfully',
             'alert-type' => 'success'
-        );
-
-        return redirect()->route('all.admin')->with($notification);
-    } // End Method 
-
+        ]);
+    }
 
     public function EditAdmin($id)
     {
-
         $roles = Role::all();
         $adminuser = User::findOrFail($id);
         return view('backend.admin.edit_admin', compact('roles', 'adminuser'));
-    } // End Method 
-
+    }
 
     public function UpdateAdmin(Request $request)
     {
-
         $admin_id = $request->id;
-
         $user = User::findOrFail($admin_id);
         $user->name = $request->name;
         $user->email = $request->email;
         $user->phone = $request->phone;
         $user->save();
 
+        // Fix: Remove existing roles before assigning new ones
         $user->roles()->detach();
+
         if ($request->roles) {
-            $user->assignRole($request->roles);
+            $role = Role::find($request->roles);
+            if ($role) {
+                $user->assignRole($role->name);
+            }
         }
 
-        $notification = array(
+        return redirect()->route('all.admin')->with([
             'message' => 'Admin User Updated Successfully',
             'alert-type' => 'success'
-        );
-
-        return redirect()->route('all.admin')->with($notification);
-    } // End Method 
-
-
+        ]);
+    }
 
     public function DeleteAdmin($id)
     {
-
         $user = User::findOrFail($id);
         if (!is_null($user)) {
             $user->delete();
         }
 
-        $notification = array(
+        return redirect()->back()->with([
             'message' => 'Admin User Deleted Successfully',
             'alert-type' => 'success'
-        );
-
-        return redirect()->back()->with($notification);
-    } // End Method 
-
-    //////////////// Database Backup Method //////////////////
-
-    public function DatabaseBackup()
-    {
-
-        return view('admin.db_backup')->with('files', File::allFiles(storage_path('/app/Easy')));
-    } // End Method 
-
-
-    public function BackupNow()
-    {
-        \Artisan::call('backup:run');
-
-        $notification = array(
-            'message' => 'Database Backup Successfully',
-            'alert-type' => 'success'
-        );
-
-        return redirect()->back()->with($notification);
-    } // End Method 
-
-
-    public function DownloadDatabase($getFilename)
-    {
-
-        $path = storage_path('app\Easy/' . $getFilename);
-        return response()->download($path);
-    } // End Method 
-
-    public function DeleteDatabase($getFilename)
-    {
-
-        Storage::delete('Easy/' . $getFilename);
-
-        $notification = array(
-            'message' => 'Database Deleted Successfully',
-            'alert-type' => 'success'
-        );
-
-        return redirect()->back()->with($notification);
-    } // End Method 
-
-
+        ]);
+    }
 }

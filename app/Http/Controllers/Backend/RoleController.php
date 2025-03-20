@@ -180,20 +180,6 @@ class RoleController extends Controller
 
         return redirect()->route('all.roles.permission')->with($notification);
     }
-
-
-
-    public function AdminDeleteRoles($id){
-        $role = Role::findOrFail($id);
-        if (!is_null($role)) {
-            $role->delete();
-        }
-        $notification = array(
-            'message' => 'Role Permission Deleted Successfully',
-            'alert-type' => 'success'
-        );
-        return redirect()->back()->with($notification);
-    }// End Method 
     
     public function AdminDeleteRoles($id){
 
@@ -208,6 +194,13 @@ class RoleController extends Controller
         );
         return redirect()->back()->with($notification);
     }// End Method 
+
+    ///////////////////////////////// Admin Role Permission End /////////////////////////////////   
+
+    public function AllAdmin(){
+        $alladminuser = User::latest()->get();
+        return view('backend.pages.admin.all_admin',compact('alladminuser'));
+    }
     
 
 

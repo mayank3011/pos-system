@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Backend;
 
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Product;
@@ -19,46 +20,60 @@ class OrderController extends Controller
 
     public function FinalInvoice(Request $request)
     {
+        // Ensure numeric values for total and pay
+        $rtotal = floatval($request->total);
+        $rpay = floatval($request->pay);
 
-        $data = array();
-        $data['customer_id'] = $request->customer_id;
-        $data['order_date'] = $request->order_date;
-        $data['order_status'] = $request->order_status;
-        $data['total_products'] = $request->total_products;
-        $data['sub_total'] = $request->sub_total;
-        $data['vat'] = $request->vat;
+        if (!is_numeric($rtotal) || !is_numeric($rpay)) {
+            return back()->with([
+                'message' => 'Invalid total or payment amount!',
+                'alert-type' => 'error'
+            ]);
+        }
 
-        $data['invoice_no'] = 'EPOS' . mt_rand(10000000, 99999999);
-        $data['total'] = $request->total;
-        $data['payment_status'] = $request->payment_status;
-        $data['pay'] = $request->pay;
-        $data['due'] = $request->due;
-        $data['created_at'] = Carbon::now();
+        $mtotal = $rtotal - $rpay; // Safe subtraction
 
-        $order_id = Order::insertGetId($data);
+        // Prepare order data
+        $orderData = [
+            'customer_id' => $request->customer_id,
+            'order_date' => $request->order_date,
+            'order_status' => $request->order_status,
+            'total_products' => $request->total_products,
+            'sub_total' => $request->sub_total,
+            'vat' => $request->vat,
+            'invoice_no' => 'EPOS' . mt_rand(10000000, 99999999),
+            'total' => $rtotal,
+            'payment_status' => $request->payment_status,
+            'pay' => $rpay,
+            'due' => $mtotal,
+            'created_at' => Carbon::now(),
+        ];
+
+        // Insert order and get the ID
+        $order_id = Order::insertGetId($orderData);
+
+        // Insert order details
         $contents = Cart::content();
 
-        $pdata = array();
         foreach ($contents as $content) {
-            $pdata['order_id'] = $order_id;
-            $pdata['product_id'] = $content->id;
-            $pdata['quantity'] = $content->qty;
-            $pdata['unitcost'] = $content->price;
-            $pdata['total'] = $content->total;
+            Orderdetails::create([
+                'order_id' => $order_id,
+                'product_id' => $content->id,
+                'quantity' => $content->qty,
+                'unitcost' => $content->price,
+                'total' => $content->price * $content->qty, // Ensure correct total calculation
+            ]);
+        }
 
-            $insert = Orderdetails::insert($pdata);
-        } // end foreach
-
-
-        $notification = array(
-            'message' => 'Order Complete Successfully',
-            'alert-type' => 'success'
-        );
-
+        // Clear cart
         Cart::destroy();
 
-        return redirect()->route('dashboard')->with($notification);
-    } // End Method 
+        return redirect()->route('dashboard')->with([
+            'message' => 'Order Completed Successfully!',
+            'alert-type' => 'success'
+        ]);
+    }
+
 
 
     public function PendingOrder()
@@ -121,6 +136,37 @@ class OrderController extends Controller
                 'chroot' => public_path(),
         ]);
          return $pdf->download('invoice.pdf');
+    }// End Method 
+    public function PendingDue(){
+        $alldue = Order::where('due','>','0')->orderBy('id','DESC')->get();
+        return view('backend.order.pending_due',compact('alldue'));
+    } // End Method 
+    public function OrderDueAjax($id)
+    {
+        $order = Order::findOrFail($id);
+        return response()->json($order);
+    } // End Method 
+
+    public function UpdateDue(Request $request){
+
+
+        $order_id = $request->id;
+        $due_amount = $request->due;
+        $pay_amount = $request->pay;
+        $allorder = Order::findOrFail($order_id);
+        $maindue = $allorder->due;
+        $maindpay = $allorder->pay;
+        $paid_due = $maindue - $due_amount;
+        $paid_pay = $maindpay + $due_amount;
+        Order::findOrFail($order_id)->update([
+            'due' => $paid_due,
+            'pay' => $paid_pay, 
+        ]);
+         $notification = array(
+            'message' => 'Due Amount Updated Successfully',
+            'alert-type' => 'success'
+        ); 
+        return redirect()->route('pending.due')->with($notification);
     }// End Method 
 
 
