@@ -8,6 +8,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -187,4 +189,45 @@ class AdminController extends Controller
             'alert-type' => 'success'
         ]);
     }
+    public function DownloadDatabase()
+    {
+        try {
+            // Get all table names
+            $tables = DB::select('SHOW TABLES');
+            $databaseName = config('database.connections.mysql.database');
+
+            $dump = "-- Database Backup - " . date('Y-m-d H:i:s') . "\n\n";
+
+            foreach ($tables as $table) {
+                $tableName = $table->{'Tables_in_' . $databaseName};
+
+                // Add table structure
+                $createTable = DB::select('SHOW CREATE TABLE ' . $tableName);
+                $dump .= "\n\n" . $createTable[0]->{'Create Table'} . ";\n\n";
+
+                // Add table data
+                $rows = DB::table($tableName)->get();
+                foreach ($rows as $row) {
+                    $rowData = array_map(function ($value) {
+                        return is_string($value) ? "'" . addslashes($value) . "'" : $value;
+                    }, (array)$row);
+
+                    $dump .= "INSERT INTO $tableName (" . implode(', ', array_keys((array)$row)) . ") VALUES (" . implode(', ', $rowData) . ");\n";
+                }
+            }
+
+            $fileName = $databaseName . '_backup_' . date('Y-m-d') . '.sql';
+
+            return Response::make($dump, 200, [
+                'Content-Type' => 'application/sql',
+                'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->back()->with([
+                'message' => 'Backup failed: ' . $e->getMessage(),
+                'alert-type' => 'error'
+            ]);
+        }
+    }
+    
 }

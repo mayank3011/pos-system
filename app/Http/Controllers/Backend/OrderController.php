@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Backend;
 
-
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Product;
@@ -13,6 +12,8 @@ use Carbon\Carbon;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderMail;
 
 class OrderController extends Controller
 {
@@ -20,60 +21,54 @@ class OrderController extends Controller
 
     public function FinalInvoice(Request $request)
     {
-        // Ensure numeric values for total and pay
-        $rtotal = floatval($request->total);
-        $rpay = floatval($request->pay);
 
-        if (!is_numeric($rtotal) || !is_numeric($rpay)) {
-            return back()->with([
-                'message' => 'Invalid total or payment amount!',
-                'alert-type' => 'error'
-            ]);
-        }
+        $rtotal = (float) $request->input('total', 0);
+    $rpay = (float) $request->input('pay', 0);
+    $mtotal = $rtotal - $rpay;
+        $data = array();
+        $data['customer_id'] = $request->customer_id;
+        $data['order_date'] = $request->order_date;
+        $data['order_status'] = $request->order_status;
+        $data['total_products'] = $request->total_products;
+        $data['sub_total'] = $request->sub_total;
+        $data['vat'] = $request->vat;
+        $data['invoice_no'] = 'EPOS' . mt_rand(10000000, 99999999);
+        $data['total'] = $request->total;
+        $data['payment_status'] = $request->payment_status;
+        $data['pay'] = $request->pay;
+        $data['due'] = $mtotal;
+        $data['created_at'] = Carbon::now();
 
-        $mtotal = $rtotal - $rpay; // Safe subtraction
-
-        // Prepare order data
-        $orderData = [
-            'customer_id' => $request->customer_id,
-            'order_date' => $request->order_date,
-            'order_status' => $request->order_status,
-            'total_products' => $request->total_products,
-            'sub_total' => $request->sub_total,
-            'vat' => $request->vat,
-            'invoice_no' => 'EPOS' . mt_rand(10000000, 99999999),
-            'total' => $rtotal,
-            'payment_status' => $request->payment_status,
-            'pay' => $rpay,
-            'due' => $mtotal,
-            'created_at' => Carbon::now(),
-        ];
-
-        // Insert order and get the ID
-        $order_id = Order::insertGetId($orderData);
-
-        // Insert order details
+        $order_id = Order::insertGetId($data);
         $contents = Cart::content();
 
+        $pdata = array();
         foreach ($contents as $content) {
-            Orderdetails::create([
-                'order_id' => $order_id,
-                'product_id' => $content->id,
-                'quantity' => $content->qty,
-                'unitcost' => $content->price,
-                'total' => $content->price * $content->qty, // Ensure correct total calculation
-            ]);
-        }
+            $pdata['order_id'] = $order_id;
+            $pdata['product_id'] = $content->id;
+            $pdata['quantity'] = $content->qty;
+            $pdata['unitcost'] = $content->price;
+            $pdata['total'] = $content->total;
 
-        // Clear cart
+            $insert = Orderdetails::insert($pdata);
+        } // end foreach
+
+
+        // Generate PDF Invoice
+        $order = Order::find($order_id);
+        $orderItem = Orderdetails::with('product')->where('order_id', $order_id)->get();
+        $pdf = Pdf::loadView('backend.order.order_invoice', compact('order', 'orderItem'))->output();
+
+        // Send Email with PDF Attachment
+        Mail::to($order->customer->email)->send(new OrderMail($order, $pdf));
+
         Cart::destroy();
 
         return redirect()->route('dashboard')->with([
-            'message' => 'Order Completed Successfully!',
-            'alert-type' => 'success'
+            'message' => 'Order Completed & Invoice Sent Successfully',
+            'alert-type' => 'success',
         ]);
-    }
-
+    } // End Method 
 
 
     public function PendingOrder()
@@ -106,11 +101,13 @@ class OrderController extends Controller
 
         $order_id = $request->id;
 
+
         $product = Orderdetails::where('order_id', $order_id)->get();
         foreach ($product as $item) {
             Product::where('id', $item->product_id)
                 ->update(['product_store' => DB::raw('product_store-' . $item->quantity)]);
         }
+
         Order::findOrFail($order_id)->update(['order_status' => 'complete']);
 
         $notification = array(
@@ -124,50 +121,70 @@ class OrderController extends Controller
 
     public function StockManage()
     {
+
         $product = Product::latest()->get();
         return view('backend.stock.all_stock', compact('product'));
     } // End Method 
 
-    public function OrderInvoice($order_id){
-         $order = Order::where('id',$order_id)->first();
-        $orderItem = Orderdetails::with('product')->where('order_id',$order_id)->orderBy('id','DESC')->get();
-        $pdf = Pdf::loadView('backend.order.order_invoice', compact('order','orderItem'))->setPaper('a4')->setOption([
-                'tempDir' => public_path(),
-                'chroot' => public_path(),
+
+    public function OrderInvoice($order_id)
+    {
+
+        $order = Order::where('id', $order_id)->first();
+
+        $orderItem = Orderdetails::with('product')->where('order_id', $order_id)->orderBy('id', 'DESC')->get();
+
+        $pdf = Pdf::loadView('backend.order.order_invoice', compact('order', 'orderItem'))->setPaper('a4')->setOption([
+            'tempDir' => public_path(),
+            'chroot' => public_path(),
+
         ]);
-         return $pdf->download('invoice.pdf');
-    }// End Method 
-    public function PendingDue(){
-        $alldue = Order::where('due','>','0')->orderBy('id','DESC')->get();
-        return view('backend.order.pending_due',compact('alldue'));
+        return $pdf->download('invoice.pdf');
     } // End Method 
+
+
+    public function PendingDue()
+    {
+
+        $alldue = Order::where('due', '>', '0')->orderBy('id', 'DESC')->get();
+        return view('backend.order.pending_due', compact('alldue'));
+    } // End Method 
+
+
     public function OrderDueAjax($id)
     {
+
         $order = Order::findOrFail($id);
         return response()->json($order);
     } // End Method 
 
-    public function UpdateDue(Request $request){
 
+    public function UpdateDue(Request $request)
+    {
 
         $order_id = $request->id;
         $due_amount = $request->due;
         $pay_amount = $request->pay;
+
         $allorder = Order::findOrFail($order_id);
         $maindue = $allorder->due;
         $maindpay = $allorder->pay;
+
         $paid_due = $maindue - $due_amount;
         $paid_pay = $maindpay + $due_amount;
+
         Order::findOrFail($order_id)->update([
             'due' => $paid_due,
-            'pay' => $paid_pay, 
+            'pay' => $paid_pay,
         ]);
-         $notification = array(
+
+        $notification = array(
             'message' => 'Due Amount Updated Successfully',
             'alert-type' => 'success'
-        ); 
+        );
+
         return redirect()->route('pending.due')->with($notification);
-    }// End Method 
+    } // End Method 
 
 
 }

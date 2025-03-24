@@ -75,5 +75,6 @@ return [
         'thousand_separator' => ',',
 
     ],
+    'instance' => 'cart'
 
 ];

@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
+            
             $table->integer('customer_id');
             $table->string('order_date');
             $table->string('order_status');
@@ -22,10 +23,11 @@ return new class extends Migration
             $table->string('sub_total')->nullable();
             $table->string('vat')->nullable();
             $table->string('invoice_no')->nullable();
-            $table->string('total')->nullable();
+            $table->decimal('total', 8, 2)->default(0.00);
             $table->string('payment_status')->nullable();
-            $table->string('pay')->nullable();
-            $table->string('due')->nullable();
+            $table->decimal('due', 8, 2)->default(0.00);
+            $table->decimal('pay', 8, 2)->default(0.00);
+
             $table->timestamps();
         });
     }

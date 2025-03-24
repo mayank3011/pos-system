@@ -16,7 +16,8 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('product_name');
-            $table->integer('category_id');
+            $table->integer('book_group_id');
+            $table->unsignedBigInteger('book_group_id')->nullable()->after('supplier_id');
             $table->integer('supplier_id');
             $table->string('product_code');
             $table->string('product_garage')->nullable();
@@ -37,6 +38,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('products');
+        Schema::table('products', function (Blueprint $table) {
+            $table->dropColumn('book_group_id');
+        });
     }
 };

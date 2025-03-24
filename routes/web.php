@@ -14,6 +14,9 @@ use App\Http\Controllers\Backend\ExpenseController;
 use App\Http\Controllers\Backend\PosController;
 use App\Http\Controllers\Backend\OrderController;
 use App\Http\Controllers\Backend\RoleController;
+use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\Backend\BookGroupController;
+
 
 /* 
 |--------------------------------------------------------------------------
@@ -50,14 +53,17 @@ Route::get('/logout', [AdminController::class, 'AdminLogoutPage'])->name('admin.
 
 Route::middleware(['auth'])->group(function () {
 
+    Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+    Route::get('/analytics/export', [AnalyticsController::class, 'exportReport'])->name('analytics.export');
     Route::get('/admin/profile', [AdminController::class, 'AdminProfile'])->name('admin.profile');
 
     Route::post('/admin/profile/store', [AdminController::class, 'AdminProfileStore'])->name('admin.profile.store');
 
-
     Route::get('/change/password', [AdminController::class, 'ChangePassword'])->name('change.password');
 
     Route::post('/update/password', [AdminController::class, 'UpdatePassword'])->name('update.password');
+    Route::resource('book-groups', BookGroupController::class);
+
 
 
 
@@ -71,8 +77,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/update/employee', 'UpdateEmployee')->name('employee.update');
         Route::get('/delete/employee/{id}', 'DeleteEmployee')->name('delete.employee');
     });
-
-
     /// Customer All Route 
     Route::controller(CustomerController::class)->group(function () {
 
@@ -83,7 +87,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/update/customer', 'UpdateCustomer')->name('customer.update');
         Route::get('/delete/customer/{id}', 'DeleteCustomer')->name('delete.customer');
     });
-
 
     /// Supplier All Route 
     Route::controller(SupplierController::class)->group(function () {
@@ -183,7 +186,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/allitem', 'AllItem');
         Route::post('/cart-update/{rowId}', 'CartUpdate');
         Route::get('/cart-remove/{rowId}', 'CartRemove');
-
+        Route::post('/cart/add', [PosController::class, 'AddCart'])->name('cart.add');
         Route::post('/create-invoice', 'CreateInvoice');
     });
 
@@ -207,6 +210,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/order/due/{id}', 'OrderDueAjax');
         Route::post('/update/due', 'UpdateDue')->name('update.due');
     });
+
 
 
     ///Permission All Route 
@@ -268,3 +272,4 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/delete/database/{getFilename}', 'DeleteDatabase');
     });
 }); // End User Middleware 
+// Category sales report

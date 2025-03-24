@@ -20,7 +20,7 @@
                     <h4 class="page-title">Edit Product</h4>
                 </div>
             </div>
-        </div>     
+        </div>
         <!-- end page title -->
 
         <div class="row">
@@ -37,7 +37,6 @@
                                 <h5 class="mb-4 text-uppercase"><i class="mdi mdi-account-circle me-1"></i> Edit Product</h5>
 
                                 <div class="row">
-
                                     <div class="col-md-6">
                                         <div class="form-group mb-3">
                                             <label for="product_name" class="form-label">Product Name</label>
@@ -51,7 +50,9 @@
                                             <select name="category_id" class="form-select" id="example-select">
                                                 <option selected disabled>Select Category</option>
                                                 @foreach($category as $cat)
-                                                    <option value="{{ $cat->id }}" {{ $cat->id == $product->category_id ? 'selected' : '' }}>{{ $cat->category_name }}</option>
+                                                    <option value="{{ $cat->id }}" {{ $cat->id == $product->category_id ? 'selected' : '' }}>
+                                                        {{ $cat->category_name }}
+                                                    </option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -63,7 +64,24 @@
                                             <select name="supplier_id" class="form-select" id="example-select">
                                                 <option selected disabled>Select Supplier</option>
                                                 @foreach($supplier as $sup)
-                                                    <option value="{{ $sup->id }}" {{ $sup->id == $product->supplier_id ? 'selected' : '' }}>{{ $sup->name }}</option>
+                                                    <option value="{{ $sup->id }}" {{ $sup->id == $product->supplier_id ? 'selected' : '' }}>
+                                                        {{ $sup->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- New Group Dropdown -->
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="book_group_id" class="form-label">Group</label>
+                                            <select name="book_group_id" class="form-select" id="book_group_id">
+                                                <option selected disabled>Select Group</option>
+                                                @foreach($groups as $grp)
+                                                    <option value="{{ $grp->id }}" {{ $grp->id == $product->book_group_id ? 'selected' : '' }}>
+                                                        {{ $grp->group_name }}
+                                                    </option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -142,7 +160,7 @@
                         </div>
 
                     </div>
-                </div> <!-- end card-->
+                </div>
             </div> <!-- end col -->
         </div> <!-- end row-->
     </div> <!-- container -->
@@ -162,7 +180,6 @@
                 expire_date: { required: true }, 
                 buying_price: { required: true }, 
                 selling_price: { required: true }, 
-                product_image: { required: true }
             },
             messages: {
                 product_name: { required: 'Please Enter Product Name' },
@@ -175,7 +192,6 @@
                 expire_date: { required: 'Please Select Expire Date' },
                 buying_price: { required: 'Please Enter Buying Price' },
                 selling_price: { required: 'Please Enter Selling Price' },
-                product_image: { required: 'Please Select Product Image' }
             },
             errorElement: 'span',
             errorPlacement: function (error, element) {
@@ -190,7 +206,9 @@
     $(document).ready(function(){
         $('#image').change(function(e){
             var reader = new FileReader();
-            reader.onload = function(e){ $('#showImage').attr('src',e.target.result); }
+            reader.onload = function(e){
+                $('#showImage').attr('src',e.target.result);
+            }
             reader.readAsDataURL(e.target.files[0]);
         });
     });

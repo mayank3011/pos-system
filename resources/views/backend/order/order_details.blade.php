@@ -50,8 +50,14 @@
     <div class="col-md-6">
         <div class="mb-3">
             <label for="firstname" class="form-label">Customer Image</label>
-             <img id="showImage" src="{{ asset($order->customer->image ) }}" class="rounded-circle avatar-lg img-thumbnail"
-                alt="profile-image">
+              
+                                        @if(!empty($item->customer) && !empty($item->customer->image))
+                                            <img src="{{ asset($item->customer->image) }}" style="width:50px; height: 40px;">
+                                        @else
+                                            <span style="color: red;">No Image</span>
+                                        @endif
+                                    
+                                    
            
         </div>
     </div>
@@ -60,7 +66,7 @@
               <div class="col-md-6">
         <div class="mb-3">
             <label for="firstname" class="form-label">Customer Name</label>
-             <p class="text-danger"> {{ $order->customer->name }} </p>
+             <p class="text-danger"> {{ $item->customer->name ?? 'Unknown Customer' }} </p>
         </div>
     </div>
 
@@ -69,7 +75,7 @@
     <div class="col-md-6">
         <div class="mb-3">
             <label for="firstname" class="form-label">Customer Email</label>
-             <p class="text-danger"> {{ $order->customer->email }} </p>
+             <p class="text-danger"> {{ $order->customer->email ??'No Email'}} </p>
         </div>
     </div>
 
@@ -77,7 +83,7 @@
        <div class="col-md-6">
         <div class="mb-3">
             <label for="firstname" class="form-label">Customer Phone</label>
-             <p class="text-danger"> {{ $order->customer->phone }} </p>
+             <p class="text-danger"> {{ $order->customer->phone ?? 'No phone' }} </p>
         </div>
     </div>
 

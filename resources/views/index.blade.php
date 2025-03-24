@@ -1,6 +1,7 @@
 @extends('admin_dashboard')
 @section('admin')
 
+
 @php
  $date = date('d-F-Y');
  $today_paid = App\Models\Order::where('order_date',$date)->sum('pay');
@@ -10,7 +11,7 @@
 
  $completeorder = App\Models\Order::where('order_status','complete')->get(); 
 
-  $pendingorder = App\Models\Order::where('order_status','pending')->get(); 
+$pendingorder = App\Models\Order::where('order_status','pending')->get(); 
 
 @endphp
 
@@ -129,29 +130,8 @@
                         <!-- end row-->
 
                         <div class="row">
-                            
-
-                            <div class="col-lg-12">
-                                <div class="card">
-                                    <div class="card-body pb-2">
-                                        <div class="float-end d-none d-md-inline-block">
-                                            <div class="btn-group mb-2">
-                                                <button type="button" class="btn btn-xs btn-light">Today</button>
-                                                <button type="button" class="btn btn-xs btn-light">Weekly</button>
-                                                <button type="button" class="btn btn-xs btn-secondary">Monthly</button>
-                                            </div>
-                                        </div>
-    
-                                        <h4 class="header-title mb-3">Sales Analytics</h4>
-    
-                                        <div dir="ltr">
-                                            <div id="sales-analytics" class="mt-4" data-colors="#1abc9c,#4a81d4"></div>
-                                        </div>
-                                    </div>
-                                </div> <!-- end card -->
-                            </div> <!-- end col-->
+                            @yield('dashboard')
                         </div>
-                        <!-- end row -->
 
                         <div class="row">
                          
